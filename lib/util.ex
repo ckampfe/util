@@ -4,17 +4,26 @@ defmodule Util do
   """
 
   @doc """
-  example.nodes
-  |> List.first()
-  |> Traverser.traverse(fn
-  {_tag, _attrs, children} when is_list(children) -> true
-  l when is_list(l) -> true
-  _ -> false end,
-  fn
-    {_tag, _attrs, children} ->
-    children
-  end
-  )
+
+  iex> data = [{:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]}]
+  ...> data
+  ...> |> List.first()
+  ...> |> Util.traverse(
+  ...>   fn
+  ...>     {_tag, _attrs, children} when is_list(children) -> true
+  ...>     l when is_list(l) -> true
+  ...>     _ -> false
+  ...>   end,
+  ...>   fn
+  ...>     {_tag, _attrs, children} -> children end
+  ...> )
+  ...> |> Enum.to_list()
+  [
+    {:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]},
+    {:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]},
+    {:li, [], "hi"},
+    {:li, [], "there"}
+  ]
   """
   def traverse(root, is_branch?, children) do
     walk = fn node, walker ->
