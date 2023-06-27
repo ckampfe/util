@@ -3,7 +3,13 @@ defmodule Util do
   Documentation for `Util`.
   """
 
+  @spec traverse(any, (any -> bool), (any -> [any])) :: Stream.t()
   @doc """
+  Takes three arguments, the first of which is the root element.
+  The `is_branch?` function takes an element that could be a branch.
+  The `children` function returns the children for a given branch element.
+  `children` is called on elements for which `is_branch?` returns `true`.
+  Inspired by/copied from Clojure's `tree-seq`.
 
       iex> data = [{:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]}]
       ...> data
