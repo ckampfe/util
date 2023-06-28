@@ -3,8 +3,9 @@ defmodule Util do
   Documentation for `Util`.
   """
 
-  @spec traverse(any, (any -> bool), (any -> [any])) :: Stream.t()
+  @spec tree_stream(any, (any -> bool), (any -> Enumerable.t())) :: Enumerable.t()
   @doc """
+  Traverses and returns a `Stream` of the individual nodes of a tree structure.
   Takes three arguments, the first of which is the root element.
   The `is_branch?` function takes an element that could be a branch.
   The `children` function returns the children for a given branch element.
@@ -14,10 +15,9 @@ defmodule Util do
       iex> data = [{:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]}]
       ...> data
       ...> |> List.first()
-      ...> |> Util.traverse(
+      ...> |> Util.tree_stream(
       ...>   fn
       ...>     {_tag, _attrs, children} when is_list(children) -> true
-      ...>     l when is_list(l) -> true
       ...>     _ -> false
       ...>   end,
       ...>   fn
@@ -31,7 +31,7 @@ defmodule Util do
         {:li, [], "there"}
       ]
   """
-  def traverse(root, is_branch?, children) do
+  def tree_stream(root, is_branch?, children) do
     walk = fn node, walker ->
       Stream.concat(
         [node],
