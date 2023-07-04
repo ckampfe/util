@@ -12,23 +12,64 @@ defmodule Util do
   `children` is called on elements for which `is_branch?` returns `true`.
   Inspired by/copied from Clojure's `tree-seq`.
 
-      iex> data = [{:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]}]
+      iex> # With a list as the root:
+      ...> data = [{:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]}]
       ...> data
-      ...> |> List.first()
       ...> |> Util.tree_stream(
       ...>   fn
+      ...>     l when is_list(l) -> true
       ...>     {_tag, _attrs, children} when is_list(children) -> true
       ...>     _ -> false
       ...>   end,
       ...>   fn
-      ...>     {_tag, _attrs, children} -> children end
+      ...>     l when is_list(l) -> l
+      ...>     {_tag, _attrs, children} -> children
+      ...>   end
       ...> )
       ...> |> Enum.to_list()
       [
+        [{:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]}],
         {:body, [], [{:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]}]},
         {:ul, [], [{:li, [], "hi"}, {:li, [], "there"}]},
         {:li, [], "hi"},
         {:li, [], "there"}
+      ]
+
+      iex> # With a map as the root:
+      ...> data = %{a: [1, %{b: "hi", c: %{d: 999}}, 2], x: "terminal"}
+      ...> data
+      ...> |> Util.tree_stream(
+      ...>   fn
+      ...>     {_k, v} when is_list(v) or is_map(v) -> true
+      ...>     m when is_map(m) -> true
+      ...>     _ -> false
+      ...>   end,
+      ...>   fn
+      ...>     {_k, v} -> v
+      ...>     m when is_map(m) -> Enum.into(m, [])
+      ...>   end
+      ...> )
+      ...> |> Enum.to_list()
+      [
+        %{
+          a: [
+            1,
+            %{
+              b: "hi",
+              c: %{d: 999}
+            },
+            2
+          ],
+          x: "terminal"
+        },
+        {:a, [1, %{c: %{d: 999}, b: "hi"}, 2]},
+        1,
+        %{b: "hi", c: %{d: 999}},
+        {:c, %{d: 999}},
+        {:d, 999},
+        {:b, "hi"},
+        2,
+        {:x, "terminal"}
       ]
   """
   def tree_stream(root, is_branch?, children) do
